@@ -3740,4 +3740,428 @@ La implementación de un framework de pruebas HIL es un paso esencial para garan
 
 Si prefieres avanzar en alguna otra de las áreas mencionadas o necesitas más detalles sobre cómo implementar el framework de pruebas HIL, por favor, házmelo saber y con gusto te asistiré.
 
-¡Estoy aquí para ayudarte a llevar adelante este proyecto de manera exitosa!
+
+GPGM-RBTEM-0521-TI-001-A: Framework de Pruebas HIL para Robbbo-T-eaM-AmPeL (RNT)
+
+1. Especificación Formal de Requisitos de Pruebas HIL
+
+1.1. Objetivo
+
+Definir de manera formal los requisitos para las pruebas Hardware-in-the-Loop (HIL) que asegurarán la validación exhaustiva de los sistemas de control adaptativo y e-motion en los robots Robbbo-T-eaM-AmPeL (RNT) antes de su despliegue en entornos operativos reales.
+
+1.2. Alcance
+
+Estas pruebas abarcarán la interacción entre el hardware físico del robot y las simulaciones virtuales, evaluando el desempeño del sistema bajo diversas condiciones operativas. Se enfocarán en validar funcionalidades críticas, asegurar la estabilidad del sistema y garantizar el cumplimiento de las normativas de certificación.
+
+1.3. Requisitos de Prueba
+
+1.3.1. Funcionalidades a Validar
+	1.	Seguimiento de Trayectorias:
+      •   Verificar que el robot puede seguir trayectorias predefinidas con precisión bajo diferentes cargas y condiciones ambientales simuladas.
+	2.	Respuesta a Perturbaciones:
+      •   Evaluar cómo el sistema de control adaptativo reacciona ante perturbaciones externas, como cambios bruscos en la carga o interferencias en los sensores.
+	3.	Integración de Sensores:
+      •   Asegurar que la fusión de datos de múltiples sensores táctiles, de fuerza/torque y cámaras RGB-D se realiza correctamente, proporcionando estimaciones precisas del estado del sistema.
+	4.	E-Motion y Respuestas Emocionales:
+      •   Validar que las respuestas emocionales del robot (calm, alert, happy, sad) se ajustan adecuadamente en función de las interacciones con el entorno y las tareas realizadas.
+	5.	Estabilidad del Sistema:
+      •   Garantizar que el sistema permanece estable durante operaciones prolongadas y bajo condiciones extremas simuladas.
+	6.	Cumplimiento Normativo:
+      •   Verificar que todas las funcionalidades cumplen con las normativas de certificación requeridas (EASA, REACH, S1000D).
+
+1.3.2. Métricas de Evaluación
+	1.	Precisión de Seguimiento:
+      •   Definición: Diferencia entre la trayectoria deseada y la trayectoria real seguida por el robot.
+      •   Métrica: Desviación media y máxima en metros.
+      •   Fórmula:
+￼
+	2.	Tiempo de Respuesta:
+      •   Definición: Tiempo que tarda el sistema en responder a una perturbación desde su detección hasta la estabilización.
+      •   Métrica: Tiempo en segundos.
+	3.	Latencia de Comunicación:
+      •   Definición: Retardo entre el envío de un comando desde el simulador y su ejecución en el hardware.
+      •   Métrica: Tiempo en milisegundos.
+	4.	Tasa de Error en Estimaciones de Estado:
+      •   Definición: Precisión de las estimaciones de posición y orientación proporcionadas por la fusión de sensores.
+      •   Métrica: Error cuadrático medio (MSE) en las estimaciones.
+	5.	Consumo de Energía:
+      •   Definición: Cantidad de energía consumida durante las pruebas operativas.
+      •   Métrica: Energía en joules.
+	6.	Estabilidad del Sistema:
+      •   Definición: Medida de cómo el sistema mantiene sus estados sin oscilaciones indeseadas.
+      •   Métrica: Valor de margen de ganancia y margen de fase, según análisis de estabilidad.
+	7.	Cumplimiento Normativo:
+      •   Definición: Verificación de que todas las funcionalidades cumplen con los estándares requeridos.
+      •   Métrica: Número de no conformidades detectadas.
+
+1.4. Requisitos Funcionales y No Funcionales
+
+1.4.1. Requisitos Funcionales
+   •   RF1: El sistema debe ser capaz de recibir y procesar datos de al menos tres sensores táctiles simultáneamente.
+   •   RF2: El controlador adaptativo debe ajustar automáticamente las ganancias ￼ en respuesta a las perturbaciones detectadas.
+   •   RF3: El gemelo digital debe reflejar en tiempo real los estados del sistema físico durante las pruebas.
+   •   RF4: Las pruebas deben incluir escenarios que simulen condiciones extremas y fallos en los sensores.
+
+1.4.2. Requisitos No Funcionales
+   •   RNF1: Las pruebas HIL deben realizarse con una frecuencia mínima de 100 Hz.
+   •   RNF2: El sistema debe soportar una latencia máxima de comunicación de 50 ms entre hardware y simulación.
+   •   RNF3: La interfaz de usuario para monitorear las pruebas debe ser intuitiva y accesible en tiempo real.
+   •   RNF4: Los datos de las pruebas deben almacenarse de forma segura y ser fácilmente accesibles para análisis posterior.
+
+2. Desarrollo del Pipeline de Integración Hardware-Simulación
+
+2.1. Objetivo
+
+Desarrollar un pipeline eficiente que permita la integración fluida entre el hardware físico de los robots Robbbo-T-eaM-AmPeL (RNT) y las simulaciones virtuales en tiempo real, facilitando las pruebas HIL y la validación de sistemas de control adaptativo y e-motion.
+
+2.2. Componentes del Pipeline
+	1.	Simulador de Entorno:
+      •   Herramienta: Gazebo
+      •   Descripción: Proporciona un entorno físico virtual donde se simulan las condiciones operativas reales del robot.
+	2.	Middleware de Comunicación:
+      •   Herramienta: ROS (Robot Operating System)
+      •   Descripción: Facilita la comunicación entre los nodos de software y el hardware físico, manejando la suscripción y publicación de tópicos de datos.
+	3.	Interfaz de Hardware:
+      •   Descripción: Conecta el hardware físico con el simulador, permitiendo el intercambio de datos en tiempo real.
+      •   Herramienta: rosserial o rosbridge_suite para comunicación serial si se usa microcontroladores.
+	4.	Sincronización de Datos:
+      •   Descripción: Asegura que los datos enviados y recibidos entre hardware y simulación estén sincronizados temporalmente.
+      •   Mecanismo: Uso de timestamps y buffers de mensajes para manejar latencias y garantizar consistencia.
+	5.	Controlador Adaptativo:
+      •   Descripción: Implementa las leyes de control adaptativo que ajustan los parámetros de control en respuesta a los datos fusionados de sensores.
+      •   Herramienta: Nodos de ROS escritos en Python o C++.
+	6.	Sistema de Monitoreo y Logging:
+      •   Herramienta: rqt_graph, rqt_plot, y rosbag
+      •   Descripción: Permite visualizar la arquitectura de nodos y monitorear datos en tiempo real, además de registrar sesiones de pruebas para análisis posterior.
+
+2.3. Pasos para el Desarrollo del Pipeline
+
+2.3.1. Configuración del Simulador y ROS
+	1.	Instalación de Gazebo y ROS:
+      •   Asegurar que las versiones de Gazebo y ROS sean compatibles.
+      •   Configurar el workspace de ROS para incluir los paquetes necesarios de simulación.
+	2.	Creación del Modelo del Robot en Gazebo:
+      •   Utilizar archivos URDF para definir la estructura física del robot.
+      •   Incluir sensores virtuales (cámaras RGB-D, sensores de fuerza/torque).
+
+2.3.2. Implementación de la Interfaz de Hardware
+	1.	Conexión Física:
+      •   Conectar el hardware del robot (actuadores, sensores) a la computadora que ejecuta Gazebo y ROS.
+      •   Utilizar interfaces de comunicación adecuadas (USB, Ethernet).
+	2.	Configuración de rosserial o rosbridge_suite:
+      •   Permitir la comunicación entre microcontroladores y ROS.
+      •   Publicar y subscribir a tópicos necesarios para el intercambio de datos.
+
+2.3.3. Desarrollo de Nodos de ROS
+	1.	Nodos de Publicación de Sensores:
+      •   Crear nodos que leen datos de los sensores físicos y los publican a ROS.
+      •   Ejemplo:
+
+import rospy
+from sensor_msgs.msg import JointState
+
+def sensor_publisher():
+    rospy.init_node('sensor_publisher', anonymous=True)
+    pub = rospy.Publisher('/robot/joint_states', JointState, queue_size=10)
+    rate = rospy.Rate(100)  # 100 Hz
+    
+    while not rospy.is_shutdown():
+        joint_state = JointState()
+        joint_state.header.stamp = rospy.Time.now()
+        joint_state.name = ['joint1', 'joint2']
+        joint_state.position = [0.5, 1.0]
+        joint_state.velocity = [0.0, 0.0]
+        joint_state.effort = [0.0, 0.0]
+        
+        pub.publish(joint_state)
+        rate.sleep()
+
+if __name__ == '__main__':
+    try:
+        sensor_publisher()
+    except rospy.ROSInterruptException:
+        pass
+
+
+	2.	Nodos de Control Adaptativo:
+      •   Implementar nodos que reciben datos de sensores, ejecutan algoritmos de control adaptativo y envían comandos a los actuadores.
+      •   Ejemplo basado en MRAC:
+
+import rospy
+from sensor_msgs.msg import JointState
+from std_msgs.msg import Float64
+import numpy as np
+
+class MRACController:
+    def __init__(self):
+        rospy.init_node('mrac_controller')
+        self.pub = rospy.Publisher('/robot/joint1_command', Float64, queue_size=10)
+        rospy.Subscriber('/robot/joint_states', JointState, self.callback)
+        self.Kp = 1.0
+        self.Ki = 0.1
+        self.Kd = 0.05
+        self.integral_error = 0.0
+        self.previous_error = 0.0
+        self.gamma = 0.01
+        self.reference_position = 1.57  # 90 grados en radianes
+        self.rate = rospy.Rate(100)  # 100 Hz
+    
+    def callback(self, data):
+        current_position = data.position[0]
+        error = self.reference_position - current_position
+        self.integral_error += error / 100.0
+        derivative_error = (error - self.previous_error) * 100.0
+        self.previous_error = error
+        
+        control_signal = self.Kp * error + self.Ki * self.integral_error + self.Kd * derivative_error
+        self.pub.publish(Float64(control_signal))
+        
+        # Leyes adaptativas
+        self.Kp += self.gamma * error * current_position
+        self.Ki += self.gamma * error
+        self.Kd += self.gamma * derivative_error
+    
+    def run(self):
+        while not rospy.is_shutdown():
+            self.rate.sleep()
+
+if __name__ == '__main__':
+    controller = MRACController()
+    controller.run()
+
+
+
+2.3.4. Sincronización y Gestión de Latencias
+	1.	Timestamps y Buffers:
+      •   Incluir timestamps en los mensajes de ROS para sincronizar datos entre hardware y simulación.
+      •   Utilizar buffers de mensajes para gestionar latencias y asegurar la consistencia temporal.
+	2.	Pruebas de Latencia:
+      •   Medir y ajustar la latencia de comunicación para cumplir con los requisitos establecidos (RNF2: Latencia máxima de 50 ms).
+
+2.3.5. Sistema de Monitoreo y Logging
+	1.	Visualización de Datos:
+      •   Utilizar rqt_graph para visualizar la arquitectura de nodos y la comunicación entre ellos.
+      •   Emplear rqt_plot para monitorear en tiempo real las métricas de desempeño.
+	2.	Registro de Pruebas:
+      •   Usar rosbag para grabar sesiones de pruebas y analizar datos posteriormente.
+      •   Ejemplo:
+
+rosbag record -o hil_test.bag /robot/joint_states /robot/joint1_command
+
+3. Automatización Inicial de Pruebas de Validación en Modelos GAR-eu
+
+3.1. Objetivo
+
+Implementar la automatización de pruebas de validación para los modelos GAR-eu, asegurando que las funcionalidades críticas se verifiquen de manera consistente y eficiente a través de pruebas repetibles y escalables.
+
+3.2. Herramientas y Tecnologías
+	1.	Framework de Pruebas:
+      •   pytest: Framework de pruebas para Python, ampliamente utilizado por su simplicidad y flexibilidad.
+      •   Robot Framework: Framework de automatización de pruebas de aceptación basado en palabras clave, adecuado para pruebas de sistemas integrados.
+	2.	Integración Continua (CI/CD):
+      •   Jenkins, GitLab CI, o GitHub Actions: Herramientas para automatizar la ejecución de pruebas en cada commit o pull request.
+	3.	Simulaciones Automatizadas:
+      •   Gazebo: Para ejecutar simulaciones de manera automatizada.
+      •   ROS Launch Files: Configurar sesiones de simulación y pruebas mediante archivos de lanzamiento.
+
+3.3. Pasos para la Automatización de Pruebas
+
+3.3.1. Definición de Casos de Prueba
+	1.	Caso de Prueba 1: Seguimiento de Trayectoria Sin Perturbaciones
+      •   Descripción: Verificar que el robot sigue una trayectoria predefinida sin desviaciones significativas en condiciones ideales.
+      •   Métrica: Desviación media < 0.05 m.
+	2.	Caso de Prueba 2: Respuesta a Perturbaciones en la Carga
+      •   Descripción: Evaluar cómo el controlador adaptativo ajusta las ganancias para mantener la trayectoria bajo una carga adicional.
+      •   Métrica: Tiempo de estabilización < 2 segundos, desviación media < 0.1 m.
+	3.	Caso de Prueba 3: Fusión de Sensores con Datos Ruidosos
+      •   Descripción: Validar la precisión de las estimaciones de estado cuando se introducen ruidos en las lecturas de sensores.
+      •   Métrica: Error cuadrático medio (MSE) < 0.01.
+	4.	Caso de Prueba 4: Respuesta Emocional a Interacciones Positivas y Negativas
+      •   Descripción: Comprobar que el robot ajusta su e-motion correctamente en función de las interacciones recibidas.
+      •   Métrica: Transición de estados emocionales dentro de 1 segundo, sin interrupciones.
+
+3.3.2. Desarrollo de Scripts de Prueba Automatizados
+
+Ejemplo con pytest:
+	1.	Instalación de pytest:
+
+pip install pytest
+
+
+	2.	Estructura de Directorios:
+
+/tests
+    test_hil.py
+
+
+	3.	Script de Prueba (test_hil.py):
+
+import rospy
+import pytest
+from sensor_msgs.msg import JointState
+from std_msgs.msg import Float64
+import time
+import numpy as np
+ 
+@pytest.fixture(scope="module")
+def ros_node():
+    rospy.init_node('pytest_node', anonymous=True)
+    yield
+    rospy.signal_shutdown('Tests Completed')
+ 
+def test_trajectory_following(ros_node):
+    pub = rospy.Publisher('/robot/joint1_command', Float64, queue_size=10)
+    time.sleep(1)  # Esperar a que el publicador se conecte
+    
+    # Enviar comandos para seguir una trayectoria predefinida
+    for cmd in np.linspace(0.0, 1.57, 100):
+        pub.publish(Float64(cmd))
+        time.sleep(0.01)  # 100 Hz
+    
+    # Leer estados finales
+    state = rospy.wait_for_message('/robot/joint_states', JointState, timeout=5)
+    final_position = state.position[0]
+    
+    assert abs(final_position - 1.57) < 0.05, "Desviación de trayectoria demasiado alta."
+ 
+def test_response_to_perturbation(ros_node):
+    pub = rospy.Publisher('/robot/joint1_command', Float64, queue_size=10)
+    time.sleep(1)
+    
+    # Enviar comandos con perturbación
+    for cmd in np.linspace(0.0, 1.57, 100):
+        pub.publish(Float64(cmd))
+        time.sleep(0.01)
+    
+    # Introducir perturbación
+    pub.publish(Float64(1.57 + 0.2))
+    time.sleep(0.5)  # Esperar a que el controlador ajuste
+     
+    # Leer estado final
+    state = rospy.wait_for_message('/robot/joint_states', JointState, timeout=5)
+    final_position = state.position[0]
+    
+    assert abs(final_position - 1.57) < 0.1, "El sistema no ajustó correctamente la perturbación."
+ 
+def test_sensor_fusion_with_noise(ros_node):
+    # Simular datos ruidosos y verificar precisión
+    # Esto requiere una simulación específica o mocks de sensores
+    pass  # Implementar según la infraestructura disponible
+ 
+def test_emotional_response(ros_node):
+    # Simular interacciones positivas y negativas y verificar e-motion
+    pass  # Implementar según la infraestructura disponible
+
+
+
+Ejemplo con Robot Framework:
+	1.	Instalación de Robot Framework y bibliotecas ROS:
+
+pip install robotframework
+pip install robotframework-ros
+
+
+	2.	Estructura de Directorios:
+
+/tests
+    test_hil.robot
+
+
+	3.	Script de Prueba (test_hil.robot):
+
+*** Settings ***
+Library    ROSLibrary
+
+*** Variables ***
+${TOPIC_JOINT_COMMAND}    /robot/joint1_command
+${TOPIC_JOINT_STATES}     /robot/joint_states
+
+*** Test Cases ***
+Trajectory Following Test
+    [Documentation]    Verificar que el robot sigue una trayectoria predefinida con precisión.
+    Connect To ROS
+    Publish To Topic    ${TOPIC_JOINT_COMMAND}    Float64    0.0
+    :FOR    ${cmd}    IN RANGE    0    100
+    \    ${value}=    Evaluate    ${cmd} * 1.57 / 100
+    \    Publish To Topic    ${TOPIC_JOINT_COMMAND}    Float64    ${value}
+    \    Sleep    0.01
+    ${state}=    Wait For Message    ${TOPIC_JOINT_STATES}    JointState    timeout=5
+    Should Be True    abs(${state.position[0]} - 1.57) < 0.05    Desviación de trayectoria demasiado alta.
+
+Response to Perturbation Test
+    [Documentation]    Evaluar la respuesta del controlador adaptativo ante una perturbación en la carga.
+    Connect To ROS
+    :FOR    ${cmd}    IN RANGE    0    100
+    \    ${value}=    Evaluate    ${cmd} * 1.57 / 100
+    \    Publish To Topic    ${TOPIC_JOINT_COMMAND}    Float64    ${value}
+    \    Sleep    0.01
+    Publish To Topic    ${TOPIC_JOINT_COMMAND}    Float64    1.77
+    Sleep    0.5
+    ${state}=    Wait For Message    ${TOPIC_JOINT_STATES}    JointState    timeout=5
+    Should Be True    abs(${state.position[0]} - 1.57) < 0.1    El sistema no ajustó correctamente la perturbación.
+
+
+
+3.3.3. Integración con CI/CD
+	1.	Configuración de Jenkins/GitLab CI/GitHub Actions:
+      •   Definir pipelines que ejecuten las pruebas automáticamente en cada commit o pull request.
+      •   Ejemplo de configuración para GitHub Actions (.github/workflows/ci.yml):
+
+name: CI
+
+on:
+  push:
+    branches: [ main ]
+  pull_request:
+    branches: [ main ]
+
+jobs:
+  build-and-test:
+    runs-on: ubuntu-latest
+    steps:
+    - uses: actions/checkout@v2
+    - name: Set up Python
+      uses: actions/setup-python@v2
+      with:
+        python-version: '3.8'
+    - name: Install Dependencies
+      run: |
+        pip install pytest
+        pip install filterpy
+        # Instalar otras dependencias necesarias
+    - name: Run Tests
+      run: |
+        pytest tests/
+
+
+	2.	Automatización de Despliegues:
+      •   Configurar despliegues automáticos de los resultados de pruebas y notificaciones en caso de fallos.
+
+3.3.4. Reporte y Análisis de Resultados
+	1.	Generación de Reportes:
+      •   Utilizar plugins de pytest (como pytest-html) para generar reportes detallados.
+      •   Ejemplo:
+
+pytest tests/ --html=report.html
+
+
+	2.	Análisis de Fallos:
+      •   Implementar scripts que analicen los logs y reportes para identificar patrones de fallos o áreas de mejora.
+	3.	Feedback Loop:
+      •   Incorporar los resultados de las pruebas en el proceso de desarrollo para iterar y mejorar continuamente los sistemas de control y e-motion.
+
+Conclusión
+
+La implementación de un framework de pruebas HIL, junto con un pipeline de integración hardware-simulación y la automatización inicial de pruebas de validación, es fundamental para garantizar la robustez, precisión y confiabilidad de los sistemas robóticos Robbbo-T-eaM-AmPeL (RNT). Este enfoque no solo facilita la detección temprana de errores y la optimización de sistemas de control adaptativo y e-motion, sino que también asegura el cumplimiento de las normativas de certificación requeridas en el sector aeroespacial.
+
+Próximos Pasos:
+	1.	Desarrollar y Documentar Casos de Prueba Adicionales:
+      •   Ampliar la cobertura de pruebas para incluir escenarios más complejos y condiciones operativas variadas.
+	2.	Implementar Pruebas de Resistencia y Durabilidad:
+      •   Evaluar el desempeño del robot bajo operaciones prolongadas y condiciones extremas.
+	3.	Optimizar el Pipeline de Integración:
+      •   Mejorar la eficiencia del pipeline mediante la implementación de técnicas avanzadas de sincronización y gestión de datos.
+	4.	Expandir la Automatización de Pruebas:
+      •   Incorporar más frameworks y herramientas para aumentar la cobertura y profundidad de las pruebas automatizadas.
+
+
